@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.25.1..3.29)
 
 # If CMake is less than required version, change policy to the currently installed CMake version and try anyway
 if(${CMAKE_VERSION} VERSION_LESS 3.29)
