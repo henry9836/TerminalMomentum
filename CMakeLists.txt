@@ -5,21 +5,31 @@ if(${CMAKE_VERSION} VERSION_LESS 3.29)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 endif()
 
-# Fetch libaries
-include(FetchContent)
-
-# FTXUI
-# set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE) # This prevent updating the dependancy
-FetchContent_Declare(ftxui
-  GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
-  GIT_TAG main # If we decide to not allow the project to use the latest version of ftxui then we can specify the version here
-)
-FetchContent_MakeAvailable(ftxui)
-
 project(TerminalMomentum VERSION 1.0
                         DESCRIPTION "A note-taking cli application inspired by Notational Velocity"
                         LANGUAGES CXX)
 
+# Fetch libaries
+include(FetchContent)
+
+# FTXUI
+
+find_package(ftxui)
+
+# Download ftxui if it is not present on the system
+if (NOT ftxui_FOUND)
+    message(STATUS "ftxui package not found, will download and build ftxui from GitHub...")
+    # set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE) # This prevent updating the dependancy
+    FetchContent_Declare(ftxui
+    GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+    GIT_TAG main # If we decide to not allow the project to use the latest version of ftxui then we can specify the version here
+    )
+    FetchContent_MakeAvailable(ftxui)
+else()
+    # FTXUI is already installed
+    message(STATUS "ftxui package found, using the currently installed version.")
+    include_directories(${ftxui_INCLUDE_DIRS})
+endif()
 
 ############################################################
 # Compile Step
@@ -40,10 +50,11 @@ target_include_directories(terminalmomentum
         ${PROJECT_SOURCE_DIR}/include
 )
 
+# Links to ftxui
 target_link_libraries(terminalmomentum
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
-  PRIVATE ftxui::component # Not needed for this example.
+  PRIVATE ftxui::component
 )
 
 ############################################################
