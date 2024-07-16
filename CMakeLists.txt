@@ -5,6 +5,17 @@ if(${CMAKE_VERSION} VERSION_LESS 3.29)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 endif()
 
+# Fetch libaries
+include(FetchContent)
+
+# FTXUI
+# set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE) # This prevent updating the dependancy
+FetchContent_Declare(ftxui
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+  GIT_TAG main # If we decide to not allow the project to use the latest version of ftxui then we can specify the version here
+)
+FetchContent_MakeAvailable(ftxui)
+
 project(TerminalMomentum VERSION 1.0
                         DESCRIPTION "A note-taking cli application inspired by Notational Velocity"
                         LANGUAGES CXX)
@@ -27,6 +38,12 @@ add_executable(terminalmomentum ${SOURCES})
 target_include_directories(terminalmomentum
     PRIVATE 
         ${PROJECT_SOURCE_DIR}/include
+)
+
+target_link_libraries(terminalmomentum
+  PRIVATE ftxui::screen
+  PRIVATE ftxui::dom
+  PRIVATE ftxui::component # Not needed for this example.
 )
 
 ############################################################
