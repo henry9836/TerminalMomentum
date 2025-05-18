@@ -1,45 +1,86 @@
-#include <iostream>
-#include <fstream>
-#include <ftxui/screen/screen.hpp>
+// Internal
 #include "calc-example.h"
 
- 
-#include "ftxui/component/captured_mouse.hpp"  // for ftxui
-#include "ftxui/component/component.hpp"       // for Input, Renderer, Vertical
-#include "ftxui/component/component_base.hpp"  // for ComponentBase
-#include "ftxui/component/component_options.hpp"  // for InputOption
-#include "ftxui/component/screen_interactive.hpp"  // for Component, ScreenInteractive
-#include "ftxui/dom/elements.hpp"  // for text, hbox, separator, Element, operator|, vbox, border
-#include "ftxui/util/ref.hpp"  // for Ref
+// Standard Lib
+#include <filesystem>
+#include <iostream>
+#include <fstream>
+
+// FTXUI
+#include <ftxui/component/captured_mouse.hpp>
+#include <ftxui/component/component.hpp>       // Input, Renderer, Vertical
+#include <ftxui/component/component_base.hpp>  // ComponentBase
+#include <ftxui/component/component_options.hpp>  // InputOptions
+#include <ftxui/screen/screen.hpp> // Screen
+#include <ftxui/component/screen_interactive.hpp> // ScreenInteractive
+#include <ftxui/dom/elements.hpp>  // text, hbox, separator, Element, vbox, border
+#include <ftxui/util/ref.hpp>  // Ref
 
 using namespace std;
 using namespace ftxui;
 
+// TODO: Use the file path in the conf file instead
+const string FileExtension = ".tm";
+const string DefaultFilePath = "notes";
+const string PreferredEditor = "nano";
+
+string UserInputBuffer = "";
+
+void OpenFile(const string& FilePath)
+{
+    // TODO: Refactor this to not be unsafe
+    system(("nano " + FilePath).c_str());
+}
+
+void ProcessInputAction(Event event)
+{
+    if (event == Event::Return)
+    {    
+        const string FilePath = DefaultFilePath + "/" + UserInputBuffer + FileExtension;
+
+        // If the file does not exist then create it
+        if (!filesystem::exists(FilePath))
+        {
+            ofstream(FilePath);
+        }
+        
+        // Open the file
+        OpenFile(FilePath);
+
+        // Clear the buffer
+        UserInputBuffer = "";
+    }
+}
+
+void InitalizeEnviroment()
+{
+    // Create the note directory if it does not exist
+    if (!std::filesystem::exists(DefaultFilePath))
+    {
+        filesystem::create_directory(DefaultFilePath);
+    }
+}
+
 int main()
 {
-    string InputTest;
+    // Init Software
+    InitalizeEnviroment();
 
-    Component InputTestComponent = Input(&InputTest, "Search");
+    // Retrieve user input
+    Component InputTestComponent = Input(&UserInputBuffer, "Search");
 
     // // Filter out non-digit characters.
     // InputTestComponent |= CatchEvent([&](Event event) {
     //     return event.is_character() && !std::isdigit(event.character()[0]);
     // });
     
-    // Filter out returns
+    // Hook into user input
     InputTestComponent |= CatchEvent([&](Event event) {
-        if (event == Event::Return)
-        {
-            ofstream outfile(InputTest);
-            outfile.close();
-            // Invoke a std::system call but have the editor used be whitelisted
-            // The name of the text file will also have to be santised
-            InputTest = "";
-        }
+        ProcessInputAction(event);
         return (event == Event::Return);
     });
 
-    // The component tree:
+    // Component tree
     auto component = Container::Vertical({
         InputTestComponent,
     });
@@ -53,10 +94,9 @@ int main()
         });
     });
     
+    // Init loop
     auto screen = ScreenInteractive::TerminalOutput();
     screen.Loop(renderer);
 
     return 0;
 }
-
-

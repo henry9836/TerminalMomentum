@@ -18,7 +18,7 @@ find_package(ftxui)
 
 # Download ftxui if it is not present on the system
 if (NOT ftxui_FOUND)
-    message(STATUS "ftxui package not found, will download and build ftxui from GitHub...")
+    message(STATUS "ftxui package not found, will attempt to download and build ftxui from GitHub...")
     # set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE) # This prevent updating the dependancy
     FetchContent_Declare(ftxui
     GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
